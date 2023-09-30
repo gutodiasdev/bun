@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CategoriesOnOffer {
+  offer_id    String
+  category_id String
+  resource_id String
+  created_at  DateTime   @default(now())
+  categories  categories @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  offers      offers     @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+
+  @@id([offer_id, category_id])
+}
+
+model analytics {
+  id                 String               @id
+  resources_id       String               @unique
+  user_profile_id    String               @unique
+  resources          resources            @relation(fields: [resources_id], references: [id], onDelete: Cascade)
+  user_profile       user_profile         @relation(fields: [user_profile_id], references: [id], onDelete: Cascade)
+  destination_clicks destination_clicks[]
+  offer_clicks       offer_clicks[]
+}
+
+model api_key {
+  id              String       @id
+  key             String       @unique
+  created_at      DateTime     @default(now())
+  expiration_date DateTime
+  user_profile_id String       @unique
+  user_profile    user_profile @relation(fields: [user_profile_id], references: [id], onDelete: Cascade)
+}
+
+model categories {
+  id                String              @id
+  name              String
+  resources_id      String
+  CategoriesOnOffer CategoriesOnOffer[]
+  resources         resources           @relation(fields: [resources_id], references: [id], onDelete: Cascade)
+  sub_categories    sub_categories[]
+}
+
+model destination_clicks {
+  id               String    @id
+  destination_link String
+  created_at       DateTime  @default(now())
+  analytics_id     String
+  offer_id         String
+  analytics        analytics @relation(fields: [analytics_id], references: [id], onDelete: Cascade)
+  offers           offers    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+}
+
+model offer_clicks {
+  id           String    @id
+  created_at   DateTime  @default(now())
+  analytics_id String
+  offer_id     String
+  analytics    analytics @relation(fields: [analytics_id], references: [id], onDelete: Cascade)
+  offers       offers    @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+}
+
+model offers {
+  id                 String               @id
+  image              String
+  title              String
+  old_price          String?
+  price              String
+  destination_link   String
+  store_image        String?
+  store_name         String
+  description        String?
+  expiration_date    String?
+  short_link         String
+  created_at         DateTime             @default(now())
+  is_on_showcase     Boolean              @default(false)
+  is_featured        Boolean              @default(false)
+  is_free_shipping   Boolean              @default(false)
+  resources_id       String
+  CategoriesOnOffer  CategoriesOnOffer[]
+  destination_clicks destination_clicks[]
+  offer_clicks       offer_clicks[]
+  resources          resources            @relation(fields: [resources_id], references: [id], onDelete: Cascade)
+}
+
+model resources {
+  id              String       @id
+  created_at      DateTime     @default(now())
+  user_profile_id String       @unique
+  analytics       analytics?
+  categories      categories[]
+  offers          offers[]
+  user_profile    user_profile @relation(fields: [user_profile_id], references: [id], onDelete: Cascade)
+}
+
+model sub_categories {
+  id          String     @id
+  name        String
+  category_id String
+  categories  categories @relation(fields: [category_id], references: [id], onDelete: Cascade)
+}
+
+model user_profile {
+  id                   String             @id
+  store_image          String
+  store_name           String             @unique
+  store_name_display   String
+  lomadee_source_id    String?
+  admitad_verification String?
+  payment_customer_id  String?
+  role                 Role               @default(FREE)
+  user_id              String             @unique
+  analytics            analytics?
+  api_key              api_key?
+  resources            resources?
+  users                users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_social_media    user_social_media?
+}
+
+model user_social_media {
+  id              String       @id
+  facebook        String?
+  whatsapp        String?
+  instagram       String?
+  telegram        String?
+  twitter         String?
+  user_profile_id String       @unique
+  user_profile    user_profile @relation(fields: [user_profile_id], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id                  String        @id
+  name                String
+  email               String        @unique
+  password            String
+  created_at          DateTime      @default(now())
+  agree_with_policies Boolean?      @default(false)
+  user_profile        user_profile?
+}
+
+enum Role {
+  MASTER
+  FREE
+  PREMIUM
+}
