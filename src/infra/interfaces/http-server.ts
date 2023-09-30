@@ -4,4 +4,4 @@ export interface HttpServer {
   listen(port: number): void
 }
 
-export type Methods = "get" | "post" | "put" | "patch" | "delete" | "options"
+export type Methods = "get" | "post" | "put" | "patch" | "delete" | "options" | "head" | "connect";
